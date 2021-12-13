@@ -11,7 +11,7 @@ router.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-router.get("/create-order", createOrder);
+router.post("/create-order", createOrder);
 
 router.get("/capture-order", captureOrder);
 
