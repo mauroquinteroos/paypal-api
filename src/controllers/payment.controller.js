@@ -1,5 +1,5 @@
 import axios from "axios";
-import { PAYPAL_API_URL } from "../config";
+import { HOST, PAYPAL_API_URL } from "../config";
 import { generateToken } from "../services/token";
 
 export const createOrder = async (req, res) => {
@@ -10,7 +10,7 @@ export const createOrder = async (req, res) => {
         {
           amount: {
             currency_code: "USD",
-            value: "25",
+            value: "10",
           },
           description: "Mouse Logitech",
         },
@@ -20,8 +20,8 @@ export const createOrder = async (req, res) => {
         locale: "es-PE",
         landing_page: "NO_PREFERENCE",
         user_action: "PAY_NOW",
-        return_url: "http://localhost:3000/capture-order",
-        cancel_url: "http://localhost:3000/cancel-order",
+        return_url: `${HOST}/capture-order`,
+        cancel_url: `${HOST}/cancel-order`,
       },
     };
 
@@ -46,8 +46,27 @@ export const createOrder = async (req, res) => {
   }
 };
 
-export const captureOrder = (req, res) => {
-  res.send("Capturing order");
+export const captureOrder = async (req, res) => {
+  try {
+    const token = await generateToken();
+    const { token: payerToken } = req.query;
+
+    const response = await axios.post(
+      `${PAYPAL_API_URL}/v2/checkout/orders/${payerToken}/capture`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    res.json(response.data);
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err,
+    });
+  }
 };
 
 export const cancelOrder = (req, res) => {
